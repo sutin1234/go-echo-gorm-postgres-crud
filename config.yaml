@@ -1,0 +1,14 @@
+app:
+  env: "development"
+  port: 8080
+  debug: true
+db:
+  host: "ec2-52-203-160-194.compute-1.amazonaws.com"
+  user: "yifnirvdhlsovr"
+  password: "0362898289366b1e8c4345072f162780cfaf1ff8223ee066d16f12ba8cf2824a"
+  port: 5432
+  dbname: de5qvm5e4e7u8p
+
+log:
+  level: "debug"
+  format: "json"
