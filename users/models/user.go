@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-
 )
 
 // User struct DB:users
@@ -15,6 +14,8 @@ type User struct {
 	LName    string
 	Age      int
 	Email    string
+	UserName string
+	Password string
 	Token    string
 	Birthday time.Time
 	CreateAt time.Time

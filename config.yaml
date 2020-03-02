@@ -2,6 +2,8 @@ app:
   env: "development"
   port: 8080
   debug: true
+  recovery: true
+  secret: gosecret_example"
 db:
   host: "ec2-52-203-160-194.compute-1.amazonaws.com"
   user: "yifnirvdhlsovr"

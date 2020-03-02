@@ -36,6 +36,8 @@ func RegisterRoute(u *echo.Group) *echo.Group {
 	u.POST("/add", AddUser)
 	u.PUT("/:id", UpdateUser)
 	u.DELETE("/:id", DeleteUser)
+	u.POST("/login", LoginUser)
+
 	return u
 }
 
@@ -48,6 +50,11 @@ func UserAll(c echo.Context) error {
 // GetUser func
 func GetUser(c echo.Context) error {
 	id := c.Param("id")
+	_, err := strconv.Atoi(id)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, "user not found")
+	}
+
 	user := module.FindUser(userRepository, id)
 	return c.JSON(http.StatusOK, user)
 }
@@ -68,13 +75,13 @@ func UpdateUser(c echo.Context) error {
 	id := c.Param("id")
 	_, err := strconv.Atoi(id)
 	if err != nil {
-		fmt.Println(err)
+		return c.JSON(http.StatusNotFound, "user not found")
 	}
 
 	body := models.User{}
 	body.ID = id
 	if err := c.Bind(&body); err != nil {
-		return err
+		return c.JSON(http.StatusNotFound, "user not found")
 	}
 
 	user := module.UpdateUser(userRepository, &body)
@@ -87,8 +94,24 @@ func DeleteUser(c echo.Context) error {
 	_, err := strconv.Atoi(id)
 	if err != nil {
 		fmt.Println(err)
+		return c.JSON(http.StatusNotFound, "user not found")
 	}
 
 	user := module.DeleteUser(userRepository, id)
 	return c.JSON(http.StatusOK, user)
+}
+
+// LoginUser func
+func LoginUser(c echo.Context) error {
+	body := models.User{}
+	// body.ID = strconv.Itoa(getInt(100))
+	if err := c.Bind(&body); err != nil {
+		return err
+	}
+
+	userLogin, err := module.GetLogin(userRepository, &body)
+	if err != nil {
+		return c.JSON(http.StatusForbidden, "Login failed")
+	}
+	return c.JSON(http.StatusOK, userLogin)
 }

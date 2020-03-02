@@ -17,4 +17,5 @@ type UserRepository interface {
 	Delete(*models.User) Output
 	FindByID(string) Output
 	FindAll() Output
+	FindUserByUserName(username string) Output
 }

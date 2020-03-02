@@ -4,7 +4,6 @@ import (
 	"postgres_api/users/models"
 
 	"github.com/jinzhu/gorm"
-
 )
 
 // UserRepositoryGorm struct
@@ -59,4 +58,16 @@ func (u *UserRepositoryGorm) FindAll() Output {
 	}
 
 	return Output{Result: users}
+}
+
+// FindUserAndPassword func
+func (u *UserRepositoryGorm) FindUserByUserName(useranme string) Output {
+	var user models.User
+
+	err := u.db.Where(&models.User{UserName: useranme}).Take(&user).Error
+	if err != nil {
+		return Output{Error: err}
+	}
+
+	return Output{Result: &user}
 }

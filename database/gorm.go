@@ -18,6 +18,66 @@ func GetGormConn(host, user, dbname, password, port interface{}) (*gorm.DB, erro
 	))
 }
 
+// getPort func
+func GetPort() string {
+	viper.SetConfigName("config")
+	viper.AddConfigPath(".")
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(fmt.Sprintf("fatal error config file: %s \n", err))
+		os.Exit(1)
+
+	}
+
+	return viper.GetString("app.port")
+
+}
+
+// GetEnv func
+func IsDevMode() bool {
+	viper.SetConfigName("config")
+	viper.AddConfigPath(".")
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(fmt.Sprintf("fatal error config file: %s \n", err))
+		os.Exit(1)
+
+	}
+
+	var isDev bool = false
+	if viper.GetString("app.env") == "development" {
+		isDev = true
+	} else {
+		isDev = false
+	}
+
+	return isDev
+}
+
+// GetDebug func
+func GetDebug() bool {
+	viper.SetConfigName("config")
+	viper.AddConfigPath(".")
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(fmt.Sprintf("fatal error config file: %s \n", err))
+		os.Exit(1)
+
+	}
+	// fmt.Print(viper.GetBool("app.debug"))
+	return viper.GetBool("app.debug")
+
+}
+
 // InitailzeDB func
 func InitailzeDB() *gorm.DB {
 	viper.SetConfigName("config")
