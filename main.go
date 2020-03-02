@@ -23,7 +23,8 @@ func main() {
 	}
 
 	e.GET("", func(c echo.Context) error {
-		return c.Redirect(301, "/")
+		c.Redirect(301, "/")
+		return nil
 	})
 	e.GET("/", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, "Hello Echo Framework Go!")
