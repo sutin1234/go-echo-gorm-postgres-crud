@@ -30,7 +30,10 @@ func RegisterRoute(u *echo.Group) *echo.Group {
 	db.AutoMigrate(&user)
 	fmt.Println("tables users AutoMigrated")
 
-	u.GET("", UserAll)
+	u.GET("", func(c echo.Context) error {
+		c.Redirect(http.StatusSeeOther, "api/user/")
+		return nil
+	})
 	u.GET("/", UserAll)
 	u.GET("/:id", GetUser)
 	u.POST("/add", AddUser)

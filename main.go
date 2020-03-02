@@ -23,7 +23,7 @@ func main() {
 	}
 
 	e.GET("", func(c echo.Context) error {
-		c.Redirect(301, "/")
+		c.Redirect(http.StatusSeeOther, "/")
 		return nil
 	})
 	e.GET("/", func(c echo.Context) error {
