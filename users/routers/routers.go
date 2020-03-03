@@ -39,7 +39,7 @@ func RegisterRoute(u *echo.Group) *echo.Group {
 	})
 	u.GET("/", UserAll, AuthorizeMiddleware)
 	u.GET("/:id", GetUser, AuthorizeMiddleware)
-	u.POST("/add", AddUser, AuthorizeMiddleware)
+	u.POST("/add", AddUser)
 	u.PUT("/:id", UpdateUser, AuthorizeMiddleware)
 	u.DELETE("/:id", DeleteUser, AuthorizeMiddleware)
 	u.POST("/login", LoginUser)
