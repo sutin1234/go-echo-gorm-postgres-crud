@@ -4,12 +4,13 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+
 )
 
 // User struct DB:users
 type User struct {
 	gorm.Model
-	ID       string `gorm:"primary_key"`
+	ID       string
 	Name     string
 	LName    string
 	Age      int

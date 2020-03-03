@@ -9,8 +9,11 @@ import (
 	"postgres_api/users/module"
 	"postgres_api/users/repository"
 	"strconv"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo/v4"
+	"github.com/spf13/viper"
 
 )
 
@@ -34,11 +37,11 @@ func RegisterRoute(u *echo.Group) *echo.Group {
 		c.Redirect(http.StatusSeeOther, "api/user/")
 		return nil
 	})
-	u.GET("/", UserAll)
-	u.GET("/:id", GetUser)
-	u.POST("/add", AddUser)
-	u.PUT("/:id", UpdateUser)
-	u.DELETE("/:id", DeleteUser)
+	u.GET("/", UserAll, AuthorizeMiddleware)
+	u.GET("/:id", GetUser, AuthorizeMiddleware)
+	u.POST("/add", AddUser, AuthorizeMiddleware)
+	u.PUT("/:id", UpdateUser, AuthorizeMiddleware)
+	u.DELETE("/:id", DeleteUser, AuthorizeMiddleware)
 	u.POST("/login", LoginUser)
 
 	return u
@@ -114,7 +117,63 @@ func LoginUser(c echo.Context) error {
 
 	userLogin, err := module.GetLogin(userRepository, &body)
 	if err != nil {
-		return c.JSON(http.StatusForbidden, "Login failed")
+		return c.JSON(http.StatusForbidden, err)
 	}
+	if userLogin == nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Unauthorized"})
+	}
+
+	cookie := WriteCookie(user.Token)
+	c.SetCookie(cookie)
+
 	return c.JSON(http.StatusOK, userLogin)
+}
+
+// WriteCookie func
+func WriteCookie(value string) *http.Cookie {
+	cookie := new(http.Cookie)
+	cookie.Name = "jwt_token"
+	cookie.Value = value
+	cookie.Expires = time.Now().Add(24 * time.Hour)
+	return cookie
+}
+
+// ReadCookie func
+func ReadCookie(c echo.Context) (*http.Cookie, error) {
+	cookie, err := c.Cookie("jwt_token")
+	if err != nil {
+		return nil, err
+	}
+	return cookie, nil
+}
+
+// AuthorizeMiddleware func middleware
+func AuthorizeMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		defer func() {
+			if r := recover(); r != nil {
+				c.JSON(http.StatusInternalServerError, map[string]string{
+					// "error": fmt.Sprintf("panic: %s", r),
+					"error": "Header Authorization Not Found",
+				})
+			}
+		}()
+
+		tokenString := c.Request().Header.Get("Authorization")[7:]
+
+		_, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("Err sign method %v", token.Header["alg"])
+			}
+			return []byte(viper.GetString("app.secret")), nil
+		})
+
+		if err != nil {
+			return c.JSON(http.StatusUnauthorized, "Token invalid")
+		}
+
+		return next(c)
+
+	}
 }

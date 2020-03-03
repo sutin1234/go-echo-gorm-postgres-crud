@@ -1,9 +1,12 @@
 package module
 
 import (
+	"errors"
 	"fmt"
+	"math/rand"
 	"postgres_api/users/models"
 	"postgres_api/users/repository"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -29,6 +32,7 @@ func FindUsers(r repository.UserRepository) models.Users {
 // FindUser func
 func FindUser(r repository.UserRepository, id string) *models.User {
 	output := r.FindByID(id)
+	fmt.Println(output)
 	if output.Error != nil {
 		fmt.Println(output.Error.Error())
 	}
@@ -36,7 +40,7 @@ func FindUser(r repository.UserRepository, id string) *models.User {
 	user, ok := output.Result.(*models.User)
 	if !ok {
 		fmt.Println("result is not a user")
-		return user
+		return nil
 	}
 
 	return user
@@ -61,6 +65,7 @@ func Add(r repository.UserRepository, body *models.User) *models.User {
 
 }
 
+// UpdateUser func
 func UpdateUser(r repository.UserRepository, body *models.User) *models.User {
 	output := r.FindByID(body.ID)
 	if output.Error != nil {
@@ -124,7 +129,7 @@ func GenerateJWT(email, username string) (string, error) {
 	claims["authorized"] = true
 	claims["useremail"] = email + username
 	claims["username"] = username
-	claims["exp"] = time.Now().Add(time.Minute * 60 * 24).Unix
+	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 
 	tokenString, err := token.SignedString(mySecret)
 	if err != nil {
@@ -161,6 +166,7 @@ func GetLogin(r repository.UserRepository, body *models.User) (*models.User, err
 	output := r.FindUserByUserName(body.UserName)
 	if output.Error != nil {
 		fmt.Println(output.Error.Error())
+		fmt.Println("result is not a user")
 	}
 
 	user, ok := output.Result.(*models.User)
@@ -169,24 +175,30 @@ func GetLogin(r repository.UserRepository, body *models.User) (*models.User, err
 	}
 
 	if ok := ComparePassword(user.Password, []byte(body.Password)); ok {
+		fmt.Println("compared password ok")
+
 		token, err := GenerateJWT(user.Email, user.Password)
 		if err != nil {
 			fmt.Println("result is not a user")
+			fmt.Println(err)
+			return &models.User{}, errors.New("Cannot Signed JWT Token")
 		}
+		user.ID = strconv.Itoa(rand.Intn(10))
 		user.Token = token
 
 		outputUpdate := r.Save(user)
 		if outputUpdate.Error != nil {
 			fmt.Println(output.Error.Error())
+			return &models.User{}, output.Error
 		}
 
 		userUpdated, ok := outputUpdate.Result.(*models.User)
 		if !ok {
 			fmt.Println("result is not a user")
+			return &models.User{}, errors.New("Update token falied")
 		}
 		return userUpdated, nil
 	}
 
 	return nil, err
-
 }
